@@ -7,20 +7,24 @@ import atexit
 class NotFound(object):
     pass
 
+class DropDownOption(object):
+    def __init__(self, choices):
+        self.choices = choices
+        
+    def showOption(self, name, default):
+        return easygui.choicebox("Choose an option", "Choose", self.choices)
+
 class FilePathOption(object):
-    @staticmethod
-    def showOption(name, default):
+    def showOption(self, name, default):
         return easygui.diropenbox(None, "Choose a directory", default)
     
 class StringOption(object):
-    @staticmethod
-    def showOption(name, default):
+    def showOption(self, name, default):
         return easygui.enterbox("Enter a string for setting '%s'"%name, 
                                 "Alter setting", default)
     
 class BooleanOption(object):
-    @staticmethod
-    def showOption(name, default):
+    def showOption(self, name, default):
         return easygui.boolbox(name)
 
 

@@ -7,6 +7,8 @@ import sources
 
 import win32gui
 import win32con
+import Image
+import tempfile
 
 __VERSION__ = "0.1"
 ICON = "wallpaper.ico"
@@ -35,7 +37,18 @@ class SourceManager(object):
     def nextWallpaper(self, _):
         x = self.getCurrentSource()
         if x:
-            self.set_wallpaper(x.getNextWallpaper())
+            wall = x.getNextWallpaper()
+            if os.path.splitext(wall)[1] not in (".jpg",".jpeg",".bmp"):
+                # Windows only likes jpeg or bmp images it seems, i don't know why.
+                # Lets convert it :)
+                new = tempfile.mktemp(suffix=".bmp")
+                print new
+                x = Image.open(wall)
+                x.save(new)
+                print "Changed %s"%new
+                wall = new
+            print wall
+            self.set_wallpaper(wall)
     
     def setProvider(self, klass):
         if not self.verifySettings(klass):
@@ -43,7 +56,7 @@ class SourceManager(object):
             return
         self.current_provider = klass(self.settings)
         self.current_provider.selected()
-        self.set_wallpaper(self.current_provider.getNextWallpaper())
+        self.nextWallpaper(None)
         self.settings.set_setting("_MANAGER","LastProvider",klass.NAME)
     
     def set_wallpaper(self, path):
