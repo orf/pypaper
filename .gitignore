@@ -1,0 +1,6 @@
+*.class
+*.pyc
+*.pyo
+Include
+Lib
+Scripts
