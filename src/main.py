@@ -7,6 +7,7 @@ import sources
 
 import win32gui
 import win32con
+import pywintypes
 import Image
 import tempfile
 
@@ -35,6 +36,17 @@ class SourceManager(object):
             return self.current_provider
         
     def nextWallpaper(self, _):
+        o = 0
+        while True:
+            try:
+                self._nextWallpaper(_)
+                break
+            except pywintypes.error,e:
+                o+=1
+                if o == 5:
+                    break # Give up
+    
+    def _nextWallpaper(self, _):
         x = self.getCurrentSource()
         if x:
             wall = x.getNextWallpaper()
@@ -43,7 +55,7 @@ class SourceManager(object):
                 # Lets convert it :)
                 new = tempfile.mktemp(suffix=".bmp")
                 print new
-                x = Image.open(wall)
+                x = Image.open(wall) #@UndefinedVariable
                 x.save(new)
                 print "Changed %s"%new
                 wall = new

@@ -7,6 +7,9 @@ import atexit
 class NotFound(object):
     pass
 
+class EndOfPapers(object):
+    pass
+
 class DropDownOption(object):
     def __init__(self, choices):
         self.choices = choices
