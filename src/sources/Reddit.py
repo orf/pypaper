@@ -39,7 +39,7 @@ class RedditWallpaper(sources.WallpaperSource):
         filter = self.get_setting("Filter")
         print "Getting after %s"%self.last_item
         links = list(filters[filter](self.subreddit, after=self.last_item))
-        
+        self.file_list = set()
         for link in links:
             if link.kind == "t3":
                 if "imgur.com" in link.domain:

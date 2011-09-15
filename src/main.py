@@ -10,9 +10,11 @@ import win32con
 import pywintypes
 import Image
 import tempfile
+import threading
 
 __VERSION__ = "0.1"
 ICON = "wallpaper.ico"
+WALL_LOCK = threading.Lock()
 
 class SourceManager(object):
     def __init__(self):
@@ -30,21 +32,36 @@ class SourceManager(object):
                     self.setProvider(mod)
                 
                 self.modules.append(mod)
+                
+        self.timer = None
+                
+    def startTimer(self):
+        self.timer = threading.Timer(20.0, self.wallpaperTick)
+        print "Timer kicked"
+        
+    def wallpaperTick(self):
+        print "Wallpaper ticked"
+        self.nextWallpaper(_)
+        self.startTimer()
     
     def getCurrentSource(self):
         if self.current_provider:
             return self.current_provider
         
     def nextWallpaper(self, _):
-        o = 0
-        while True:
-            try:
-                self._nextWallpaper(_)
-                break
-            except pywintypes.error,e:
-                o+=1
-                if o == 5:
-                    break # Give up
+        WALL_LOCK.acquire()
+        try:
+            o = 0
+            while True:
+                try:
+                    self._nextWallpaper(_)
+                    break
+                except pywintypes.error,e:
+                    o+=1
+                    if o == 5:
+                        break # Give up
+        finally:
+            WALL_LOCK.release()
     
     def _nextWallpaper(self, _):
         x = self.getCurrentSource()
@@ -90,9 +107,9 @@ class SourceManager(object):
     def verifySettings(self, module):
         for option in module.OPTIONS:
             if isinstance(self.settings.get_setting(module.NAME, option),sources.NotFound) \
-               and not module.OPTIONS[option][1]: #default
+               and not module.OPTIONS[option][1]: #default                 
                 if not self.settingsInput(module, option, None):
-                    return None
+                    return None            
         return True
     
     def settingsInput(self, module, setting, toolbarmenu):
@@ -110,8 +127,9 @@ class SourceManager(object):
             return None
         
     def activateSource(self, module, toolbarmenu):
-        if not isinstance(self.current_provider, module):
-            self.setProvider(module)
+        #if not isinstance(self.current_provider, module):
+        #    self.setProvider(module)
+        self.setProvider(module)
 
 
 if __name__ == "__main__":
@@ -121,7 +139,7 @@ if __name__ == "__main__":
                ('Next Wallpaper', None, manager.nextWallpaper),
                ('Wallpaper Source', None, (manager.generate_source_menu())),
                )
-    
+    manager.startTimer()
     tray = systray.SysTrayIcon(ICON,
                                "PyPaper %s"%__VERSION__,
                                options)
